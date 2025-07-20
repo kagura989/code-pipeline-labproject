@@ -1,3 +1,119 @@
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+# S3 bucket for pipeline artifacts
+resource "aws_s3_bucket" "artifacts" {
+  bucket        = var.s3_bucket_name
+  force_destroy = true
+}
+
+resource "aws_s3_bucket_acl" "bucket_acl" {
+  bucket = aws_s3_bucket.artifacts.id
+  acl    = "private"
+}
+
+# IAM Role for CodePipeline
+resource "aws_iam_role" "codepipeline_role" {
+  name = "codepipeline-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "codepipeline.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "codepipeline_policy" {
+  name = "codepipeline-policy"
+  role = aws_iam_role.codepipeline_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:PutObject"
+        ],
+        Resource = "${aws_s3_bucket.artifacts.arn}/*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "codebuild:*",
+          "codedeploy:*",
+          "iam:PassRole"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# IAM Role for CodeBuild
+resource "aws_iam_role" "codebuild_role" {
+  name = "codebuild-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "codebuild.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "codebuild_policy" {
+  role = aws_iam_role.codebuild_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:*",
+          "ec2:*",
+          "s3:*"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# CodeBuild Project
+resource "aws_codebuild_project" "build_project" {
+  name         = var.codebuild_project_name
+  service_role = aws_iam_role.codebuild_role.arn
+
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "aws/codebuild/standard:4.0"
+    type         = "LINUX_CONTAINER"
+  }
+
+  source {
+    type = "CODEPIPELINE"
+  }
+}
+
 # CodeDeploy IAM Role
 resource "aws_iam_role" "codedeploy_role" {
   name = "codedeploy-role"
@@ -38,7 +154,6 @@ resource "aws_iam_role_policy" "codedeploy_policy" {
 # CodeDeploy Application
 resource "aws_codedeploy_app" "app" {
   name = var.codedeploy_app_name
-  compute_platform = "Server"
 }
 
 # CodeDeploy Deployment Group
