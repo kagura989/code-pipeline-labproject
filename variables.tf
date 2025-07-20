@@ -44,3 +44,7 @@ variable "ec2_tag_filter" {
   description = "EC2 tag filter for CodeDeploy (e.g., Name=Env,Value=Prod)"
   type        = map(string)
 }
+variable "key_name" {
+  description = "Name of the existing EC2 Key Pair"
+  type        = string
+}
