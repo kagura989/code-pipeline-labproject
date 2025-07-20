@@ -1,0 +1,9 @@
+# Rename to terraform.tfvars and fill in values
+github_token           = "your_github_oauth_token"
+repo_owner             = "your-github-username"
+repo_name              = "your-repository-name"
+s3_bucket_name         = "your-unique-bucket-name"
+# Optional overrides:
+# pipeline_name          = "custom-pipeline-name"
+# codebuild_project_name = "custom-build-name"
+# buildspec_path        = "path/to/buildspec.yml"
