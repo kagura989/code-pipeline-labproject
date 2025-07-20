@@ -1,0 +1,20 @@
+# buildspec.yml
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      runtime: nodejs
+    commands:
+      - echo "Installing dependencies..."
+
+  build:
+    commands:
+      - echo "Building project..."
+      - mkdir -p output
+      - cp index.html output/
+
+artifacts:
+  files:
+    - '/*'
+  base-directory: output
