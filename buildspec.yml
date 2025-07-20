@@ -2,20 +2,18 @@ version: 0.2
 
 phases:
   install:
+    runtime-versions:
+      nodejs: 14
     commands:
-      - echo Installing dependencies...
-      - yum install -y openssh-clients
-
-  pre_build:
-    commands:
-      - echo Logging in before build...
-      - echo EC2_IP=$EC2_IP
+      - echo Install complete
 
   build:
     commands:
-      - echo Transferring files to EC2...
-      - scp -o StrictHostKeyChecking=no -i lab_project.pem index.html ec2-user@$EC2_IP:/home/ec2-user/
+      - echo Build started
+      - mkdir -p build
+      - cp index.html build/
 
 artifacts:
   files:
-    - index.html
+    - '/*'
+  base-directory: build
