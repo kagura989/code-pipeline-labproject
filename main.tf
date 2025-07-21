@@ -9,10 +9,7 @@ resource "aws_s3_bucket" "artifacts" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket_acl" "bucket_acl" {
-  bucket = aws_s3_bucket.artifacts.id
-  acl    = "private"
-}
+
 
 # IAM Role for CodePipeline
 resource "aws_iam_role" "codepipeline_role" {
